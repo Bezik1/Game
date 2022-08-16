@@ -1,2 +1,2 @@
-# game-wow
+# Game
  Game using python OOP and PyQt5 
