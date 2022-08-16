@@ -12,6 +12,7 @@ class Window(QWidget):
         
         self.resize(1200, 800)
         self.clicked = 'name'
+        self.current_floor = 0
         self.winner = None
         self.round = True
         self.opponent_round = True
@@ -83,9 +84,9 @@ class Window(QWidget):
                     case 'mage':
                         self.player = Mage(self.name.text())
                     case 'warrior':
-                        self.player = Warrior(self.field.text())
+                        self.player = Warrior(self.name.text())
                     case 'shaman':
-                        self.player = Shaman(self.field.text())
+                        self.player = Shaman(self.name.text())
                 self.player.equipment()                  
                 
                 self.write_name_label.setText('Wybierz tryb')
@@ -97,13 +98,26 @@ class Window(QWidget):
                 self.combo_box.addItems(mode_list)
                 self.layouts.addWidget(self.combo_box, 2, 1)
                 
-                self.name_button = QPushButton('Zapisz', self)
+                self.modes_button = QPushButton('Zapisz', self)
                 self.name_button.setFixedWidth(200)
                 
-                self.layouts.addWidget(self.name_button, 2, 2)
+                self.layouts.addWidget(self.modes_button, 2, 2)
                 
-                self.clicked = self.combo_box.currentText()
-                self.name_button.clicked.connect(self.name_action)
+                self.clicked = 'mode'
+                self.modes_button.clicked.connect(self.name_action)
+            case 'mode':
+                mode = self.combo_box.currentText()
+                
+                self.modes_button.hide()
+                self.name_button.hide()
+                self.name_button.hide()
+                
+                self.mode_button = QPushButton('Wejdź do ' + mode)
+                self.mode_button.setFixedWidth(250)
+                self.layouts.addWidget(self.mode_button, 2, 2)
+                                
+                self.clicked = mode
+                self.mode_button.clicked.connect(self.name_action)
             case 'arena':
                 self.delete_layout_items(self.layouts)
                 
@@ -207,43 +221,117 @@ class Window(QWidget):
                         random_attack = random.randint(0, 3)
                         
                         
-                        def attack(character: Character, weapon: str, attack: str, cost: int, enemy: Character = None):
-                            if enemy == None:
-                                character.eq[weapon].attack_list[attack](character, mana_error_opponent)
+                        def attack(attack_conf: dict[str, Character | str]):
+                            if attack_conf['enemy'] == None:
+                                attack_conf['character'].eq[attack_conf['weapon']].attack_list[
+                                    attack_conf['attack']](attack_conf['character'], mana_error_opponent)
                             else:
-                                character.eq[weapon].attack_list[attack](character, enemy, mana_error_opponent)
+                                attack_conf['character'].eq[attack_conf['weapon']].attack_list[
+                                    attack_conf['attack']](attack_conf['character'], attack_conf['enemy'], mana_error_opponent)
                                 
                         match self.opponent.role:
                             case 'Mage':
                                 match random_attack:
                                     case 0:
-                                        attack(self.opponent, 'Wand', 'fire ball (4)', 4, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Wand', 
+                                            'attack': 'fire ball (4)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 1:
-                                        attack(self.opponent, 'Wand', 'ice block (5)', 5)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Wand', 
+                                            'attack': 'ice block (5)',
+                                            'enemy': None
+                                        }
+                                        attack(attack_conf)
                                     case 2:
-                                        attack(self.opponent, 'Wand', 'thunder storm (2)', 2, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Wand', 
+                                            'attack': 'thunder storm (2)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 3:
-                                        attack(self.opponent, 'Wand', 'fire ball (4)', 4, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Wand', 
+                                            'attack': 'fire ball (4)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                             case 'Warrior':
                                 match random_attack:
                                     case 0:
-                                        attack(self.opponent, 'Axe', 'straight attack (3)', 3, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Axe', 
+                                            'attack': 'straight attack (3)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 1:
-                                        attack(self.opponent, 'Axe', 'strong attack (6)', 6, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Axe', 
+                                            'attack': 'strong attack (6)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 2:
-                                        attack(self.opponent, 'Axe', 'charge attack (7)', 7, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Axe', 
+                                            'attack': 'charge attack (7)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 3:
-                                        attack(self.opponent, 'Shield', 'block (3)', 3)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Shield', 
+                                            'attack': 'block (3)',
+                                            'enemy': None
+                                        }
+                                        attack(attack_conf)
                             case 'Shaman':
                                 match random_attack:
                                     case 0:
-                                        attack(self.opponent, 'Runic Book', 'summon totem (3)', 3, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Runic Book', 
+                                            'attack': 'summon totem (3)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 1:
-                                        attack(self.opponent, 'Runic Book', 'write rune (5)', 5, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Runic Book', 
+                                            'attack': 'write rune (5)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 3:
-                                        attack(self.opponent, 'Runic Book', 'summon thunder (10)', 10, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Runic Book', 
+                                            'attack': 'summon thunder (10)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                                     case 4:
-                                        attack(self.opponent, 'Runic Book', 'write rune (5)', 5, self.player)
+                                        attack_conf = {
+                                            'character': self.opponent, 
+                                            'weapon': 'Runic Book', 
+                                            'attack': 'write rune (5)',
+                                            'enemy': self.player
+                                        }
+                                        attack(attack_conf)
                     else:
                         mana_error_opponent.setText('Ogłuszenie')
                         self.opponent_round = True
@@ -302,6 +390,42 @@ class Window(QWidget):
                         update_players()
                         choose_weapon()
                 choose_weapon()
+            case 'dungeon':
+                def enemies_generators(enemies_number):
+                    random_number = random.randint(0, 2)
+                    players = []
+                    
+                    for i in enemies_number:
+                        match random_number:
+                            case 0:
+                                player = Mage('Człowiek')
+                                player.equipment()
+                            case 1:
+                                player = Warrior('Ork')
+                                player.equipment()
+                            case 2:
+                                player = Shaman('Żywiołak')
+                                player.equipment()
+                        players.append(player)
+                    return players
+
+                
+                def floors_generator(floors_number):
+                    for i in floors_number:
+                        self.floors['Floor: ' + i] = enemies_generators(i)
+                
+                def dungeon_generator(floors_number):
+                    floors_generator(floors_number)
+                    
+                    enemies: list[Mage | Warrior | Shaman] = self.floors['Floor: ' + self.current_floor]
+                    
+                    for enemy in enemies:
+                        enemy.equipment()
+                
+                dungeon_generator(3)
+                    
+                    
+                    
     def reset(self):
         self.player.health = 100
         self.player.mana = 10
