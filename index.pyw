@@ -13,6 +13,7 @@ class Window(QWidget):
         self.resize(1200, 800)
         self.clicked = 'name'
         self.current_floor = 0
+        self.floors: dict[str, list[Mage | Warrior | Shaman]] = {}
         self.winner = None
         self.round = True
         self.opponent_round = True
@@ -395,7 +396,7 @@ class Window(QWidget):
                     random_number = random.randint(0, 2)
                     players = []
                     
-                    for i in enemies_number:
+                    for enemy in range(enemies_number):
                         match random_number:
                             case 0:
                                 player = Mage('Człowiek')
@@ -411,20 +412,31 @@ class Window(QWidget):
 
                 
                 def floors_generator(floors_number):
-                    for i in floors_number:
-                        self.floors['Floor: ' + i] = enemies_generators(i)
+                    for floor_number in range(floors_number):
+                        self.floors['Floor: ' + str(floor_number)] = enemies_generators(floor_number)
                 
                 def dungeon_generator(floors_number):
                     floors_generator(floors_number)
                     
-                    enemies: list[Mage | Warrior | Shaman] = self.floors['Floor: ' + self.current_floor]
+                    enemies: list[Mage | Warrior | Shaman] = self.floors['Floor: ' + str(self.current_floor)]
                     
                     for enemy in enemies:
                         enemy.equipment()
-                
-                dungeon_generator(3)
+
+                    self.delete_layout_items(self.layouts)
                     
+                    self.dungeon_map_label = QLabel('', self)
                     
+                    for floor in self.floors.keys():
+                        text = ''
+                        text += floor + ': '
+                        for enemy in self.floors[floor]:
+                                text += enemy.name + ', '
+                        self.dungeon_map_label.setText(self.dungeon_map_label.text() + text + '\n')
+                    
+                    self.layouts.addWidget(self.dungeon_map_label, 0, 2)
+                    
+                dungeon_generator(3)         
                     
     def reset(self):
         self.player.health = 100
