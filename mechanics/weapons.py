@@ -120,7 +120,7 @@ class RunicBook(Weapon):
         
     def summon_totem(self, character, opponent, comunicat):
         if self.__mana_provider__(character, comunicat, 3) == True:
-            random_number = random.randint(0, 4)
+            random_number = random.randint(0, 3)
             
             match random_number:
                 case 0:
@@ -130,9 +130,6 @@ class RunicBook(Weapon):
                 case 2:
                     character.mana += 3
                 case 3:
-                    character.food += 20
-                    character.water += 20
-                case 4:
                     character.health -= 10
                     opponent.health -= 10
         else:

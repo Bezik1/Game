@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon, QPalette, QPixmap, QImage, QBrush
 import random
 
 from players.characters import Character, Mage, Warrior, Shaman
+from players.opponents import Dragon
 import ctypes
 
 class Window(QWidget):
@@ -81,6 +82,7 @@ class Window(QWidget):
     
     def enemy_attack(self, opponent, mana_error_opponent):
         if self.opponent_round:
+            opponent.equipment()
             mana_error_opponent.setText('')
             random_attack = random.randint(0, 3)
             
@@ -94,6 +96,18 @@ class Window(QWidget):
                         attack_conf['attack']](attack_conf['character'], attack_conf['enemy'], mana_error_opponent)
                     
             match opponent.role:
+                case 'Dragon':
+                    match opponent.type:
+                        case 'fire':
+                            match random_attack:
+                                case 0:
+                                    opponent.fire_breath(self.player, mana_error_opponent)
+                                case 1:
+                                    opponent.sky_attack(self.player, mana_error_opponent)
+                                case 2:
+                                    opponent.lava_breath(self.player, mana_error_opponent)
+                                case 3:
+                                    opponent.mana_from_the_sky()
                 case 'Mage':
                     match random_attack:
                         case 0:
@@ -415,7 +429,10 @@ class Window(QWidget):
                 
                 def floors_generator(floors_number):
                     for floor_number in range(floors_number):
-                        self.floors['Floor: ' + str(floor_number)] = enemies_generators(floor_number)
+                        if floor_number == (floors_number -1):
+                            self.floors['Floor: ' + str(floor_number)] = [Dragon('Fire Dragon', 'fire', 200)]
+                        else:
+                            self.floors['Floor: ' + str(floor_number)] = enemies_generators(floor_number)
                 
                 def write_dungeon():
                     florrs_labels = {}
@@ -439,6 +456,24 @@ class Window(QWidget):
                 def dungeon_game():
                     self.delete_layout_items(self.layouts)
                     self.current_enemy = self.floors['Floor: ' + str(self.current_floor)][self.enemy]
+                    
+                    if self.player.health <= 0 or self.current_enemy.health <= 0:
+                        if self.player.health <= 0:
+                            self.winner = self.current_enemy.name
+                            self.game_over()
+                        elif self.current_floor == 2:
+                            if self.current_enemy is self.floors['Floor: ' + str(self.current_floor)][-1]:
+                                self.winner = self.current_enemy.name
+                                self.game_over()
+                        else:
+                            if self.current_enemy is self.floors['Floor: ' + str(self.current_floor)][-1]:
+                                if self.current_enemy.health <= 0:
+                                    self.current_floor += 1
+                                    self.enemy = 0
+                                    dungeon_game()
+                            else:
+                                self.enemy += 1
+                                dungeon_game()
                     
                     player_label = QLabel(
                         'Gracz: '+ self.player.name + '\n' + 
@@ -472,21 +507,29 @@ class Window(QWidget):
                     mana_player_label = QLabel('', self)
                     mana_enemy_label = QLabel('', self)
                     
-                    current_floor_label = QLabel('Floor: ' + str(self.current_floor), self)
+                    current_floor_label = QLabel('Piętro: ' + str(self.current_floor), self)
                     
+                    def update_floor():
+                        current_floor_label.setText(
+                            'Piętro: ' + str(self.current_floor) + '\n'
+                            'Obecny przeciwnik: ' + self.current_enemy.name
+                        )
+                        
                     self.layouts.addWidget(current_floor_label, 0, 0)
-                    self.layouts.addWidget(mana_player_label, 1, 0)
-                    self.layouts.addWidget(mana_enemy_label, 1, 4)
-                    self.layouts.addWidget(player_label, 2, 0)
-                    self.layouts.addWidget(enemy_label, 2, 4)
+                    self.layouts.addWidget(mana_player_label, 0, 0)
+                    self.layouts.addWidget(mana_enemy_label, 0, 4)
+                    self.layouts.addWidget(player_label, 1, 0)
+                    self.layouts.addWidget(enemy_label, 1, 4)
+
+                    update_players()
+                    update_floor()
                     
                     def dungeon_choose_attack():
-                        if self.round:
-                            self.dungeon_weapon_label.hide()
-                            self.skip_round_button.hide()
-                            self.dungeon_weapon_button.hide()
-                            self.dungeon_weapon_box.hide()
-                            
+                        self.dungeon_weapon_label.hide()
+                        self.skip_round_button.hide()
+                        self.dungeon_weapon_button.hide()
+                        self.dungeon_weapon_box.hide()
+                        if self.round:                            
                             weapon = self.dungeon_weapon_box.currentText()
                             
                             self.dungeon_attack_label = QLabel('Wybierz atak', self)
@@ -514,7 +557,7 @@ class Window(QWidget):
                             self.effect_action(self.current_enemy, self.player)
                             update_players()
                             
-                            dungeon_choose_weapon()
+                            dungeon_game()
                     
                     def dungeon_player_attack():
                         weapon = self.dungeon_weapon_box.currentText()
@@ -538,24 +581,9 @@ class Window(QWidget):
                         self.dungeon_attack_button.hide()
                         self.dungeon_attack_box.hide()
                         
-                        dungeon_choose_weapon()
+                        dungeon_game()
                     
                     def dungeon_choose_weapon():
-                        if self.player.health <= 0 or self.current_enemy.health <= 0:
-                            if self.player.health <= 0:
-                                self.winner = self.current_enemy.name
-                                self.game_over()
-                            elif self.current_floor == 3:
-                                if self.current_enemy is self.floors['Floor: ' + self.current_floor][-1]:
-                                    self.winner = self.current_enemy.name
-                                    self.game_over()
-                            else:
-                                if self.current_enemy is self.floors['Floor: ' + self.current_floor][-1]:
-                                    if self.current_enemy.health <= 0:
-                                        self.current_floor += 1
-                                else:
-                                    self.enemy += 1
-                        
                         def skipped():
                             self.round = False
                             dungeon_choose_attack()
