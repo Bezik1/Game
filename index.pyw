@@ -550,36 +550,32 @@ class Window(QWidget):
                         else:
                             mana_player_label.setText('Pominięto rundę')
                             self.player.round_skip()
-                            self.round = True
                             
-                            self.enemy_attack(self.current_enemy, mana_enemy_label)
-                            self.effect_action(self.player, self.current_enemy)
-                            self.effect_action(self.current_enemy, self.player)
-                            update_players()
-                            
-                            dungeon_game()
+                            dungeon_player_attack()
                     
                     def dungeon_player_attack():
-                        weapon = self.dungeon_weapon_box.currentText()
-                        attack = self.dungeon_attack_box.currentText()
                         
-                        if attack == 'ice block (5)' or attack == 'block (3)' or attack == 'heavy block (8)':
-                            self.player.eq[weapon].attack_list[attack](self.player, mana_player_label)
-                        elif attack == 'stunning attack (7)':
-                            self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
-                            self.opponent_round = False
-                        else:
-                            self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
-
+                        if self.round:
+                            weapon = self.dungeon_weapon_box.currentText()
+                            attack = self.dungeon_attack_box.currentText()
+                            
+                            if attack == 'ice block (5)' or attack == 'block (3)' or attack == 'heavy block (8)':
+                                self.player.eq[weapon].attack_list[attack](self.player, mana_player_label)
+                            elif attack == 'stunning attack (7)':
+                                self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
+                                self.opponent_round = False
+                            else:
+                                self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
+                            self.dungeon_attack_label.hide()
+                            self.dungeon_attack_button.hide()
+                            self.dungeon_attack_box.hide()
+                    
+                        self.round = True
                             
                         self.enemy_attack(self.current_enemy, mana_enemy_label)
                         self.effect_action(self.player, self.current_enemy)
                         self.effect_action(self.current_enemy, self.player)
                         update_players()
-                        
-                        self.dungeon_attack_label.hide()
-                        self.dungeon_attack_button.hide()
-                        self.dungeon_attack_box.hide()
                         
                         dungeon_game()
                     
@@ -703,8 +699,8 @@ app.setStyleSheet('''
     }
 ''')
 
-myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+my_app_id = 'mycompany.myproduct.subproduct.version' # arbitrary string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(my_app_id)
 
 window = Window()
 window.setWindowIcon(QIcon('assets/icon.ico'))
