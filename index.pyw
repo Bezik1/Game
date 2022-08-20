@@ -409,10 +409,10 @@ class Window(QWidget):
                 choose_weapon()
             case 'dungeon':
                 def enemies_generators(enemies_number):
-                    random_number = random.randint(0, 2)
                     players = []
                     
                     for enemy in range(enemies_number + 1):
+                        random_number = random.randint(0, 2)
                         match random_number:
                             case 0:
                                 player = Mage('Człowiek')
@@ -451,8 +451,8 @@ class Window(QWidget):
                     counter = 0
                     for layout in florrs_labels.keys():
                         self.layouts.addWidget(florrs_labels[layout], 2, counter)
-                        counter += 1
-                  
+                        counter += 1                    
+                 
                 def dungeon_game():
                     self.delete_layout_items(self.layouts)
                     self.current_enemy = self.floors['Floor: ' + str(self.current_floor)][self.enemy]
@@ -571,7 +571,13 @@ class Window(QWidget):
                             self.dungeon_attack_box.hide()
                     
                         self.round = True
-                            
+                        
+                        current_floor_label.hide()
+                        mana_player_label.hide()
+                        mana_enemy_label.hide()
+                        player_label.hide()
+                        enemy_label.hide()
+                        
                         self.enemy_attack(self.current_enemy, mana_enemy_label)
                         self.effect_action(self.player, self.current_enemy)
                         self.effect_action(self.current_enemy, self.player)
@@ -627,7 +633,17 @@ class Window(QWidget):
                     start_button.clicked.connect(dungeon_game)
                     
                 dungeon_generator(3)
-                    
+    
+    def delete_layout_items(self, layout):
+     if layout is not None:
+         while layout.count():
+             item = layout.takeAt(0)
+             widget = item.widget()
+             if widget is not None:
+                 widget.setParent(None)
+             else:
+                 self.deleteItemsOfLayout(item.layout())
+
     def reset(self):
         self.player.health = 100
         self.player.mana = 10
@@ -658,17 +674,6 @@ class Window(QWidget):
         
         lobby.clicked.connect(lobby_connect)
         arena.clicked.connect(arena_connect)
-        #self.close()
-    
-    def delete_layout_items(self, layout):
-     if layout is not None:
-         while layout.count():
-             item = layout.takeAt(0)
-             widget = item.widget()
-             if widget is not None:
-                 widget.setParent(None)
-             else:
-                 self.deleteItemsOfLayout(item.layout())
 
 app = QApplication([])
 app.setApplicationName("Game")
