@@ -7,7 +7,10 @@ from modes.arena import Arena
 from game_mechanics.delete_layout_items import delete_layout_items
 from game_mechanics.enemy_attack_system import enemy_attack
 from game_mechanics.game_resets_functions import game_over
-from players.characters import Character, Mage, Warrior, Shaman
+from game_mechanics.effect_action import effect_action, is_effect
+from game_mechanics.update_players import update_players
+
+from players.characters import Mage, Warrior, Shaman
 import ctypes
 
 class Game(QWidget):
@@ -19,6 +22,9 @@ class Game(QWidget):
         self.delete_layout_items = delete_layout_items
         self.enemy_attack = enemy_attack
         self.game_over = game_over
+        self.update_players = update_players
+        self.is_effect = is_effect
+        self.effect_action = effect_action
         self.current_floor = 0
         self.enemy = 0
         self.floors: dict[str, list[Mage | Warrior | Shaman]] = {}
@@ -27,7 +33,6 @@ class Game(QWidget):
         self.opponent_round = True
         self.interface()
         self.show()
-        
     
     def interface(self):
             
@@ -65,32 +70,6 @@ class Game(QWidget):
         self.layouts.addWidget(self.name_button, 2, 2)
         
         self.name_button.clicked.connect(self.name_action)
-    
-    def is_effect(self, player):
-        if player.effect:
-            return player.effect.name + ' (pozostało ' + str(player.effect.time) + ' tur)'
-        else:
-            return 'Brak efektów'
-    
-    def update_players(self):
-        self.player_name_label.setText(
-            'Gracz: '+ self.player.name + '\n' + 
-            'Mana: ' + str(self.player.mana) + '\n' +
-            'Zdrowie' + str(self.player.health) + '\n' +
-            'Efekty: ' +  self.is_effect(self.player))
-        
-        self.opponent_name_label.setText(
-            'Gracz: '+ self.opponent.name + '\n' + 
-            'Mana: ' + str(self.opponent.mana) + '\n' +
-            'Zdrowie' + str(self.opponent.health) + '\n' +
-            'Efekty: ' +  self.is_effect(self.opponent))
-    
-    def effect_action(self, player: Character, opponent: Character):
-        if player.effect and player.effect.time > 0:
-            player.effect.effect(opponent)
-            player.effect.time -= 1
-        elif player.effect and player.effect.time <= 0:
-            player.effect = None
     
     def name_action(self):
         

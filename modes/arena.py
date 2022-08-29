@@ -119,7 +119,7 @@ class Arena:
                 self.game.enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
                 self.game.effect_action(self.game.player, self.game.opponent)
                 self.game.effect_action(self.game.opponent, self.game.player)
-                self.game.update_players()
+                self.game.update_players(self.game)
                 
                 self.game.attack_box.hide()
                 self.game.attack_label.hide()
@@ -132,5 +132,5 @@ class Arena:
             self.game.enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
             self.game.effect_action(self.game.player, self.game.opponent)
             self.game.effect_action(self.game.opponent, self.game.player)
-            self.game.update_players()
+            self.game.update_players(self.game)
             self.choose_weapon()
