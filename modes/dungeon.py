@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QComboBox
 from PyQt5.QtCore import Qt
 import random
 
+from mechanics.enemy_attack_system import enemy_attack
 from players.characters import Mage, Warrior, Shaman
 from players.opponents import Dragon
 import ctypes
@@ -183,7 +184,7 @@ class Dungeon:
             player_label.hide()
             enemy_label.hide()
             
-            self.game.enemy_attack(self.game.current_enemy, mana_enemy_label)
+            enemy_attack(self.game, self.game.current_enemy, mana_enemy_label)
             self.game.effect_action(self.game.player, self.game.current_enemy)
             self.game.effect_action(self.game.current_enemy, self.game.player)
             update_players()
