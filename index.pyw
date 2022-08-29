@@ -3,12 +3,13 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QPushButton, QVBox
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon, QPalette, QPixmap, QImage, QBrush
 import random
+from modes.dungeon import Dungeon
 
 from players.characters import Character, Mage, Warrior, Shaman
 from players.opponents import Dragon
 import ctypes
 
-class Window(QWidget):
+class Game(QWidget):
     def __init__(self) -> None:
         super().__init__()
         
@@ -408,231 +409,9 @@ class Window(QWidget):
                         choose_weapon()
                 choose_weapon()
             case 'dungeon':
-                def enemies_generators(enemies_number):
-                    players = []
-                    
-                    for enemy in range(enemies_number + 1):
-                        random_number = random.randint(0, 2)
-                        match random_number:
-                            case 0:
-                                player = Mage('Człowiek')
-                                player.equipment()
-                            case 1:
-                                player = Warrior('Ork')
-                                player.equipment()
-                            case 2:
-                                player = Shaman('Żywiołak')
-                                player.equipment()
-                        players.append(player)
-                    return players
-
+                dungeon = Dungeon(self, 3)
                 
-                def floors_generator(floors_number):
-                    for floor_number in range(floors_number):
-                        if floor_number == (floors_number -1):
-                            self.floors['Floor: ' + str(floor_number)] = [Dragon('Fire Dragon', 'fire', 200)]
-                        else:
-                            self.floors['Floor: ' + str(floor_number)] = enemies_generators(floor_number)
-                
-                def write_dungeon():
-                    florrs_labels = {}
-                    
-                    for floor in self.floors.keys():
-                        text = ''
-                        text += floor + ': '
-                        for enemy in self.floors[floor]:
-                            if enemy is self.floors[floor][-1]:
-                                text += '\n' + enemy.name
-                            else:
-                                text += '\n' + enemy.name + ', '
-                        florrs_labels[floor] = QLabel(text, self)
-                        florrs_labels[floor].setAlignment(Qt.AlignCenter)
-                        
-                    counter = 0
-                    for layout in florrs_labels.keys():
-                        self.layouts.addWidget(florrs_labels[layout], 2, counter)
-                        counter += 1                    
-                 
-                def dungeon_game():
-                    self.delete_layout_items(self.layouts)
-                    self.current_enemy = self.floors['Floor: ' + str(self.current_floor)][self.enemy]
-                    
-                    if self.player.health <= 0 or self.current_enemy.health <= 0:
-                        if self.player.health <= 0:
-                            self.winner = self.current_enemy.name
-                            self.game_over()
-                        elif self.current_floor == 2:
-                            if self.current_enemy is self.floors['Floor: ' + str(self.current_floor)][-1]:
-                                self.winner = self.current_enemy.name
-                                self.game_over()
-                        else:
-                            if self.current_enemy is self.floors['Floor: ' + str(self.current_floor)][-1]:
-                                if self.current_enemy.health <= 0:
-                                    self.current_floor += 1
-                                    self.enemy = 0
-                                    dungeon_game()
-                            else:
-                                self.enemy += 1
-                                dungeon_game()
-                    
-                    player_label = QLabel(
-                        'Gracz: '+ self.player.name + '\n' + 
-                        'Mana: ' + str(self.player.mana) + '\n' +
-                        'Zdrowie' + str(self.player.health) + '\n' +
-                        'Efekty: ' +  self.is_effect(self.player)
-                    , self)
-
-                    enemy_label = QLabel(
-                        'Gracz: '+ self.current_enemy.name + '\n' +
-                        'Mana: ' + str(self.current_enemy.mana) + '\n' +
-                        'Zdrowie' + str(self.current_enemy.health) + '\n' +
-                        'Efekty: ' +  self.is_effect(self.current_enemy)
-                    , self)
-                    
-                    def update_players():
-                        player_label.setText(
-                            'Gracz: '+ self.player.name + '\n' + 
-                            'Mana: ' + str(self.player.mana) + '\n' +
-                            'Zdrowie' + str(self.player.health) + '\n' +
-                            'Efekty: ' +  self.is_effect(self.player)
-                        )
-
-                        enemy_label.setText(
-                            'Gracz: '+ self.current_enemy.name + '\n' +
-                            'Mana: ' + str(self.current_enemy.mana) + '\n' +
-                            'Zdrowie' + str(self.current_enemy.health) + '\n' +
-                            'Efekty: ' +  self.is_effect(self.current_enemy)
-                        )
-                    
-                    mana_player_label = QLabel('', self)
-                    mana_enemy_label = QLabel('', self)
-                    
-                    current_floor_label = QLabel('Piętro: ' + str(self.current_floor), self)
-                    
-                    def update_floor():
-                        current_floor_label.setText(
-                            'Piętro: ' + str(self.current_floor) + '\n'
-                            'Obecny przeciwnik: ' + self.current_enemy.name
-                        )
-                        
-                    self.layouts.addWidget(current_floor_label, 0, 0)
-                    self.layouts.addWidget(mana_player_label, 0, 0)
-                    self.layouts.addWidget(mana_enemy_label, 0, 4)
-                    self.layouts.addWidget(player_label, 1, 0)
-                    self.layouts.addWidget(enemy_label, 1, 4)
-
-                    update_players()
-                    update_floor()
-                    
-                    def dungeon_choose_attack():
-                        self.dungeon_weapon_label.hide()
-                        self.skip_round_button.hide()
-                        self.dungeon_weapon_button.hide()
-                        self.dungeon_weapon_box.hide()
-                        if self.round:                            
-                            weapon = self.dungeon_weapon_box.currentText()
-                            
-                            self.dungeon_attack_label = QLabel('Wybierz atak', self)
-                            self.dungeon_attack_button = QPushButton('Zapisz', self)
-                            self.dungeon_attack_box = QComboBox(self)
-                            
-                            attack_list = []
-                            for attack in self.player.eq[weapon].attack_list.keys():
-                                attack_list.append(attack)
-                            
-                            self.dungeon_attack_box.addItems(attack_list)
-                            
-                            self.layouts.addWidget(self.dungeon_attack_label, 3, 0)
-                            self.layouts.addWidget(self.dungeon_attack_box, 3, 2)
-                            self.layouts.addWidget(self.dungeon_attack_button, 3, 4)
-                            
-                            self.dungeon_attack_button.clicked.connect(dungeon_player_attack)
-                        else:
-                            mana_player_label.setText('Pominięto rundę')
-                            self.player.round_skip()
-                            
-                            dungeon_player_attack()
-                    
-                    def dungeon_player_attack():
-                        
-                        if self.round:
-                            weapon = self.dungeon_weapon_box.currentText()
-                            attack = self.dungeon_attack_box.currentText()
-                            
-                            if attack == 'ice block (5)' or attack == 'block (3)' or attack == 'heavy block (8)':
-                                self.player.eq[weapon].attack_list[attack](self.player, mana_player_label)
-                            elif attack == 'stunning attack (7)':
-                                self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
-                                self.opponent_round = False
-                            else:
-                                self.player.eq[weapon].attack_list[attack](self.player, self.current_enemy, mana_player_label)
-                            self.dungeon_attack_label.hide()
-                            self.dungeon_attack_button.hide()
-                            self.dungeon_attack_box.hide()
-                    
-                        self.round = True
-                        
-                        current_floor_label.hide()
-                        mana_player_label.hide()
-                        mana_enemy_label.hide()
-                        player_label.hide()
-                        enemy_label.hide()
-                        
-                        self.enemy_attack(self.current_enemy, mana_enemy_label)
-                        self.effect_action(self.player, self.current_enemy)
-                        self.effect_action(self.current_enemy, self.player)
-                        update_players()
-                        
-                        dungeon_game()
-                    
-                    def dungeon_choose_weapon():
-                        def skipped():
-                            self.round = False
-                            dungeon_choose_attack()
-                        
-                        self.dungeon_weapon_label = QLabel('Wybierz broń', self)
-                        self.skip_round_button = QPushButton('Pomiń turę', self)
-                        self.dungeon_weapon_button = QPushButton('Zapisz', self)
-                        self.dungeon_weapon_box = QComboBox(self)
-                        
-                        weapon_list = []
-                        for weapon in self.player.eq.keys():
-                            weapon_list.append(weapon)
-                        
-                        self.dungeon_weapon_box.addItems(weapon_list)
-                        
-                        self.layouts.addWidget(self.dungeon_weapon_label, 3, 0)
-                        self.layouts.addWidget(self.dungeon_weapon_box, 3, 2)
-                        self.layouts.addWidget(self.skip_round_button, 3, 3)
-                        self.layouts.addWidget(self.dungeon_weapon_button, 3, 4)
-                        
-                        self.dungeon_weapon_button.clicked.connect(dungeon_choose_attack)
-                        self.skip_round_button.clicked.connect(skipped)
-                        
-                    dungeon_choose_weapon()
-                    
-                def dungeon_generator(floors_number):
-                    floors_generator(floors_number)
-                    
-                    enemies: list[Mage | Warrior | Shaman] = self.floors['Floor: ' + str(self.current_floor)]
-                    
-                    for enemy in enemies:
-                        enemy.equipment()
-
-                    self.delete_layout_items(self.layouts)
-                    
-                    start_label = QLabel('Witaj ' + self.player.name, self)
-                    start_button = QPushButton('Wejdź do dungeon', self)
-                    
-                    start_label.setAlignment(Qt.AlignCenter)
-
-                    write_dungeon()
-                    
-                    self.layouts.addWidget(start_button, 3, 1)
-                    self.layouts.addWidget(start_label, 0, 1)
-                    start_button.clicked.connect(dungeon_game)
-                    
-                dungeon_generator(3)
+                dungeon.dungeon_generator()
     
     def delete_layout_items(self, layout):
      if layout is not None:
@@ -707,7 +486,7 @@ app.setStyleSheet('''
 my_app_id = 'mycompany.myproduct.subproduct.version' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(my_app_id)
 
-window = Window()
+window = Game()
 window.setWindowIcon(QIcon('assets/icon.ico'))
 
 app_icon = QIcon()
