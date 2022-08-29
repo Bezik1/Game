@@ -1,7 +1,6 @@
 from ast import ClassDef
 from PyQt5.QtWidgets import QPushButton, QLabel, QComboBox
 import random
-from mechanics.enemy_attack_system import enemy_attack
 
 from players.characters import Mage, Warrior, Shaman
 
@@ -22,7 +21,7 @@ class Arena:
         self.game.opponent.equipment()
     
     def game_start(self):
-        self.game.delete_layout_items(self.game.layouts)
+        self.game.delete_layout_items(self.game, self.game.layouts)
         self.enemy_generator()
 
         self.game.player_name_label = QLabel(
@@ -56,7 +55,7 @@ class Arena:
                 self.game.winner = self.game.opponent.name
             elif self.game.opponent.health <= 0:
                 self.game.winner = self.game.player.name
-            self.game.game_over()
+            self.game.game_over(self.game)
         else:                  
             def skipped():
                 self.game.round = False
@@ -117,7 +116,7 @@ class Arena:
                     self.game.player.eq[weapon].attack_list[attack](self.game.player, self.game.opponent, self.mana_error_player)
                 self.game.attack_box.hide()
                     
-                enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
+                self.game.enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
                 self.game.effect_action(self.game.player, self.game.opponent)
                 self.game.effect_action(self.game.opponent, self.game.player)
                 self.game.update_players()
@@ -130,7 +129,7 @@ class Arena:
         else:
             self.game.round = True
             self.game.player.round_skip()
-            enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
+            self.game.enemy_attack(self.game, self.game.opponent, self.mana_error_opponent)
             self.game.effect_action(self.game.player, self.game.opponent)
             self.game.effect_action(self.game.opponent, self.game.player)
             self.game.update_players()

@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QPushButton, QLabel, QGridLayout, QComboBox
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon, QPalette, QImage, QBrush
-import random
 from modes.dungeon import Dungeon
 from modes.arena import Arena
 
+from game_mechanics.delete_layout_items import delete_layout_items
+from game_mechanics.enemy_attack_system import enemy_attack
+from game_mechanics.game_resets_functions import game_over
 from players.characters import Character, Mage, Warrior, Shaman
 import ctypes
 
@@ -14,6 +16,9 @@ class Game(QWidget):
         
         self.resize(1200, 800)
         self.clicked = 'name'
+        self.delete_layout_items = delete_layout_items
+        self.enemy_attack = enemy_attack
+        self.game_over = game_over
         self.current_floor = 0
         self.enemy = 0
         self.floors: dict[str, list[Mage | Warrior | Shaman]] = {}
@@ -154,47 +159,6 @@ class Game(QWidget):
             case 'dungeon':
                 dungeon = Dungeon(self, 3)
                 dungeon.dungeon_generator()
-    
-    def delete_layout_items(self, layout):
-     if layout is not None:
-         while layout.count():
-             item = layout.takeAt(0)
-             widget = item.widget()
-             if widget is not None:
-                 widget.setParent(None)
-             else:
-                 self.deleteItemsOfLayout(item.layout())
-
-    def reset(self):
-        self.player.health = 100
-        self.player.mana = 10
-        self.player.effect = None
-        
-    def game_over(self):
-        self.reset()
-        self.delete_layout_items(self.layouts)
-        
-        end_label = QLabel('Koniec gry, zwycięża ' + self.winner, self)
-        lobby = QPushButton('Lobby', self)
-        arena = QPushButton('Arena', self)
-        
-        self.layouts.addWidget(end_label, 0, 2)
-        self.layouts.addWidget(lobby, 1, 1)
-        self.layouts.addWidget(arena, 1, 3)
-        
-        def lobby_connect():
-            self.reset()
-            self.delete_layout_items(self.layouts)
-            self.clicked = 'character'
-            self.name_action()
-            
-        def arena_connect():
-            self.clicked = 'arena'
-            self.delete_layout_items(self.layouts)
-            self.name_action()
-        
-        lobby.clicked.connect(lobby_connect)
-        arena.clicked.connect(arena_connect)
 
 app = QApplication([])
 app.setApplicationName("Game")

@@ -1,9 +1,7 @@
-from locale import currency
 from PyQt5.QtWidgets import QPushButton, QLabel, QComboBox
 from PyQt5.QtCore import Qt
 import random
 
-from mechanics.enemy_attack_system import enemy_attack
 from players.characters import Mage, Warrior, Shaman
 from players.opponents import Dragon
 import ctypes
@@ -60,17 +58,17 @@ class Dungeon:
             counter += 1
                  
     def dungeon_game(self):
-        self.game.delete_layout_items(self.game.layouts)
+        self.game.delete_layout_items(self.game, self.game.layouts)
         self.game.current_enemy = self.game.floors['Floor: ' + str(self.game.current_floor)][self.game.enemy]
         
         if self.game.player.health <= 0 or self.game.current_enemy.health <= 0:
             if self.game.player.health <= 0:
                 self.game.winner = self.game.current_enemy.name
-                self.game.game_over()
+                self.game.game_over(self.game)
             elif self.game.current_floor == 2:
                 if self.game.current_enemy is self.game.floors['Floor: ' + str(self.game.current_floor)][-1]:
                     self.game.winner = self.game.current_enemy.name
-                    self.game.game_over()
+                    self.game.game_over(self.game)
             else:
                 if self.game.current_enemy is self.game.floors['Floor: ' + str(self.game.current_floor)][-1]:
                     if self.game.current_enemy.health <= 0:
@@ -184,7 +182,7 @@ class Dungeon:
             player_label.hide()
             enemy_label.hide()
             
-            enemy_attack(self.game, self.game.current_enemy, mana_enemy_label)
+            self.game.enemy_attack(self.game, self.game.current_enemy, mana_enemy_label)
             self.game.effect_action(self.game.player, self.game.current_enemy)
             self.game.effect_action(self.game.current_enemy, self.game.player)
             update_players()
@@ -225,7 +223,7 @@ class Dungeon:
         for enemy in enemies:
             enemy.equipment()
 
-        self.game.delete_layout_items(self.game.layouts)
+        self.game.delete_layout_items(self.game, self.game.layouts)
         
         start_label = QLabel('Witaj ' + self.game.player.name, self.game)
         start_button = QPushButton('Wejdź do dungeon', self.game)
